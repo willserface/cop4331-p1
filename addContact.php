@@ -23,7 +23,7 @@
 		{
 			$Userid = $row['ID'];
 			$stmt = $conn->prepare("INSERT into Contact (UserId,Name,Phone,Email) VALUES(?,?)");
-			$stmt->bind_param("ss", $, $contact);
+			$stmt->bind_param("ss", $username, $contact);
 			$stmt->execute();
 			returnWithError("201");
 		}
