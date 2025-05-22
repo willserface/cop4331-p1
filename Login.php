@@ -13,7 +13,7 @@
 	}
 	else
 	{
-		$hash = hash("sha256", $password)
+		$hash = hash("sha256", $password);
 		$stmt = $conn->prepare("SELECT ID,FirstName,LastName FROM Users WHERE Login=? AND Password =?");
 		$stmt->bind_param("ss", $id, $hash);
 		$stmt->execute();

@@ -14,8 +14,8 @@
 	} 
 	else
 	{
-		$User = $conn->prepare("SELECT ID FROM Users WHERE Login=? AND Password =?")
-		$User->bind_param("ss", $username, hash("sha256", $password))
+		$User = $conn->prepare("SELECT ID FROM Users WHERE Login=? AND Password =?");
+		$User->bind_param("ss", $username, hash("sha256", $password));
 		$User->execute();
 		$result = $User->get_result();
 
