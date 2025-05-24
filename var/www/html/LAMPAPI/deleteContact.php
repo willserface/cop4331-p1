@@ -3,7 +3,7 @@
     $username = $_SERVER['PHP_AUTH_USER'];
     $password = $_SERVER['PHP_AUTH_PW'];
 
-    $conn = new mysqli("localhost", "Swimmer", "Swiml", "shark-paradise");
+    $conn = new mysqli("localhost", "Swimmer", "Swim1", "shark-paradise");
     if ($conn->connect_error) 
     {
         returnWithError( $conn->connect_error );
