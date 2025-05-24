@@ -13,9 +13,8 @@
 	} 
 	else
 	{
-        $hash = hash("sha256", $password);
 		$stmt = $conn->prepare("INSERT into Users (FirstName,LastName,Login,Password) VALUES(?,?,?,?)");
-		$stmt->bind_param("ssss", $firstName, $lastName, $username, $hash);
+		$stmt->bind_param("ssss", $firstName, $lastName, $username, $password);
 		$stmt->execute();
 		$stmt->close();
 		$conn->close();
