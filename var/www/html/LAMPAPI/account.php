@@ -73,7 +73,6 @@ function postAccount($conn) {
     } else {
         returnWithError("400");
     }
-
     $checkForExisting->close();
 }
 
@@ -96,14 +95,13 @@ function getAccount($conn) {
     $login->bind_param("ss", $username, $password);
     $login->execute();
     $result = $login->get_result();
+    $login->close();
 
     if ($row = $result->fetch_assoc()) {
         returnWithInfo($row["Login"], $row["FirstName"], $row["LastName"]);
     } else {
         returnWithError("404");
     }
-
-    $login->close();
 }
 
 function putAccount($conn)
