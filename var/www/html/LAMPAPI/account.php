@@ -134,17 +134,9 @@ function putAccount()
     if (authenticated()) {
 
         if ($newUsername != null) {
-            $updatePrimaryKey = $conn->prepare("UPDATE Users SET Login = ? WHERE Login = ?");
-            $updatePrimaryKey->bind_param("ss", $newUsername, $username);
-            $updatePrimaryKey->execute();
-            if ($updatePrimaryKey->affected_rows == 1) $changed++;
-            else $changed = -3;
-            $updatePrimaryKey->close();
-
-            $updateForeignKey = $conn->prepare("UPDATE Contacts SET UserLogin = ? WHERE UserLogin = ?");
-            $updateForeignKey->bind_param("ss", $newUsername, $username);
-            $updateForeignKey->execute();
-            $updateForeignKey->close();
+            http_response_code(400);
+            returnWithError("Username can't be modified");
+            return;
         }
 
         if ($newPassword != null) {
