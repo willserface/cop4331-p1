@@ -142,21 +142,21 @@ function putAccount()
 
         if ($newPassword != null) {
             $updatePassword = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
-            $updatePassword->bind_param("ss", $newPassword, $username);
+            $updatePassword->bind_param("ss", $newPassword, $newUsername);
             $updatePassword->execute();
             $updatePassword->close();
         }
 
         if ($firstName != null) {
             $updateFirstName = $conn->prepare("UPDATE Users SET FirstName = ? WHERE Login = ?");
-            $updateFirstName->bind_param("ss", $firstName, $username);
+            $updateFirstName->bind_param("ss", $firstName, $newUsername);
             $updateFirstName->execute();
             $updateFirstName->close();
         }
 
         if ($lastName != null) {
             $updateLastName = $conn->prepare("UPDATE Users SET LastName = ? WHERE Login = ?");
-            $updateLastName->bind_param("ss", $lastName, $username);
+            $updateLastName->bind_param("ss", $lastName, $newUsername);
             $updateLastName->execute();
             $updateLastName->close();
         }
