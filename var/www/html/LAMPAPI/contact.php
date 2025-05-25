@@ -62,7 +62,7 @@ function returnWithError($err)
 
 function returnWithInfo($results)
 {
-    $retValue = '{"results": ' . $results . ',"error": null}';
+    $retValue = '{"results": ' . $results . '}';
     sendResultInfoAsJson($retValue);
 }
 
@@ -92,11 +92,22 @@ function postContact()
     global $firstName;
     global $lastName;
 
+    if ($firstName == null or $lastName == null) {
+        http_response_code(400);
+        returnWithError("Request is missing Contact name");
+        return;
+    }
+
     $create = $conn->prepare("INSERT INTO Contacts (FirstName, LastName, Email, Phone, UserLogin) VALUES (?, ?, ?, ?, ?)");
     $create->bind_param("sssss", $firstName, $lastName, $email, $phone, $username);
     $create->execute();
 
-    http_response_code(201);
+    if ($create->affected_rows == 1) {
+        http_response_code(201);
+    } else {
+        http_response_code(500);
+        returnWithError("Failed to create Contact");
+    }
     $create->close();
 }
 
@@ -112,9 +123,8 @@ function getContacts()
     $get = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND CONCAT(FirstName, LastName) LIKE ?");
     $get->bind_param("ss", $username, $search);
     $get->execute();
-    $result = $get->get_result();
 
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $get->get_result()->fetch_assoc()) {
         if ($count > 0) {
             $results .= ',';
         }
@@ -141,41 +151,35 @@ function putContact()
     global $username;
     global $inData;
 
-    $changed = 0;
+    $getCurrent = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND ID = ?");
+    $getCurrent->bind_param("si", $username, $contactId);
+    $getCurrent->execute();
+    if ($contact = $getCurrent->get_result()->fetch_assoc()) {
 
-    if ($name = $inData["name"]) {
-        $updateName = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ? WHERE UserLogin = ? AND ID = ?");
-        $updateName->bind_param("sssi", $name["first"], $name["last"], $username, $contactId);
-        $updateName->execute();
-        if ($updateName->affected_rows == 1) $changed++;
-        else $changed = -3;
-        $updateName->close();
-    }
+        $firstName = $inData["name"]["first"];
+        if ($firstName == null) $firstName = $contact["FirstName"];
 
-    if ($email = $inData["email"]) {
-        $updateEmail = $conn->prepare("UPDATE Contacts SET Email = ? WHERE UserLogin = ? AND ID = ?");
-        $updateEmail->bind_param("ssi", $email, $username, $contactId);
-        $updateEmail->execute();
-        if ($updateEmail->affected_rows == 1) $changed++;
-        else $changed = -3;
-        $updateEmail->close();
-    }
+        $lastName = $inData["name"]["last"];
+        if ($lastName == null) $lastName = $contact["LastName"];
 
-    if ($phone = $inData["phone"]) {
-        $updatePhone = $conn->prepare("UPDATE Contacts SET Phone = ? WHERE UserLogin = ? AND ID = ?");
-        $updatePhone->bind_param("ssi", $phone, $username, $contactId);
-        $updatePhone->execute();
-        if ($updatePhone->affected_rows == 1) $changed++;
-        else $changed = -3;
-        $updatePhone->close();
-    }
+        $email = $inData["email"];
+        if ($email == null) $email = $contact["Email"];
 
-    if ($changed >= 0) {
-        http_response_code(201);
-        returnWithError("201");
+        $phone = $inData["phone"];
+        if ($phone == null) $phone = $contact["Phone"];
+
+        $update = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ?, Email = ?, Phone = ? WHERE UserLogin = ? AND ID = ?");
+        $update->bind_param("sssssi", $firstName, $lastName, $email, $phone, $username, $contactId);
+        $update->execute();
+
+        if ($update->affected_rows == 1) http_response_code(201); else {
+            http_response_code(500);
+            returnWithError("Failed to update Contact");
+        }
+        $update->close();
     } else {
         http_response_code(404);
-        returnWithError($changed);
+        returnWithError("No Contact found for ID " . $contactId);
     }
 }
 
@@ -193,6 +197,7 @@ function deleteContact()
         http_response_code(204);
     } else {
         http_response_code(404);
+        returnWithError("No Contact found for ID " . $contactId);
     }
 
     $delete->close();

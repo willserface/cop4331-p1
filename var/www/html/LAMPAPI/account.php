@@ -51,7 +51,7 @@ function returnWithError($err)
 
 function returnWithInfo($username, $firstName, $lastName)
 {
-    $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '},"error": null}';
+    $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '}}';
     sendResultInfoAsJson($retValue);
 }
 
@@ -77,9 +77,11 @@ function postAccount()
         $insert->execute();
         $insert->close();
         http_response_code(201);
+        returnWithInfo($username, $firstName, $lastName);
     } else {
         $insert->close();
-        http_response_code(400);
+        http_response_code(500);
+        returnWithError("Failed to create Account");
     }
 }
 
@@ -114,7 +116,7 @@ function getAccount()
     if ($row = $result->fetch_assoc()) {
         returnWithInfo($row["Login"], $row["FirstName"], $row["LastName"]);
     } else {
-        http_response_code(201);
+        http_response_code(401);
     }
 }
 
@@ -128,8 +130,6 @@ function putAccount()
 
     $newPassword = $inData["password"];
 
-    $changed = 0;
-
     if (authenticated()) {
 
         if ($inData["username"] != null) {
@@ -138,30 +138,39 @@ function putAccount()
             return;
         }
 
-        if ($newPassword != null) {
-            $updatePassword = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
-            $updatePassword->bind_param("ss", $newPassword, $username);
-            $updatePassword->execute();
-            if ($updatePassword->affected_rows == 1) $changed++;
-            else $changed = -3;
-            $updatePassword->close();
-        }
-
-        if ($inData["name"] != null) {
-            $updateName = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ? WHERE Login = ?");
-            $updateName->bind_param("sss", $firstName, $lastName, $username);
-            $updateName->execute();
-            if ($updateName->affected_rows == 1) $changed++;
-            else $changed = -3;
-            $updateName->close();
-        }
-
-        if ($changed > 0) {
-            http_response_code(201);
+        if ($newPassword != null and $inData["name"] != null) {
+            $update = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
+            $update->bind_param("ssss", $firstName, $lastName, $newPassword, $username);
+            $update->execute();
+            if ($update->affected_rows < 1) {
+                http_response_code(500);
+                returnWithError("Failed to update multiple Account fields");
+            }
+            $update->close();
+        } else if ($newPassword != null) {
+            $update = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
+            $update->bind_param("ss", $newPassword, $username);
+            $update->execute();
+            if ($update->affected_rows < 1) {
+                http_response_code(400);
+                returnWithError("Failed to update password");
+            }
+            $update->close();
+        } else if ($inData["name"] != null) {
+            $update = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ? WHERE Login = ?");
+            $update->bind_param("sss", $firstName, $lastName, $username);
+            $update->execute();
+            if ($update->affected_rows < 1) {
+                http_response_code(400);
+                returnWithError("Failed to update profile name");
+            }
+            $update->close();
         } else {
-            http_response_code(404);
-            returnWithError($changed);
+            http_response_code(400);
+            returnWithError("No changes were provided");
         }
+
+        http_response_code(201);
     } else {
         http_response_code(401);
     }
@@ -176,9 +185,13 @@ function deleteAccount()
         $delete = $conn->prepare("DELETE FROM Users WHERE Login = ?");
         $delete->bind_param("s", $username);
         $delete->execute();
-        $delete->close();
 
-        http_response_code(204);
+        if ($delete->affected_rows == 1) {
+            http_response_code(204);
+        } else {
+            http_response_code(400);
+        }
+        $delete->close();
     } else {
         http_response_code(401);
     }
