@@ -126,7 +126,7 @@ function getContacts()
         }';
     }
 
-    returnWithInfo($results);
+    returnWithInfo("[" . $results . "]");
     $get->close();
 }
 
