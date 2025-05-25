@@ -116,7 +116,14 @@ function getContacts()
             $results .= ',';
         }
         $count++;
-        $results .= json_encode($row);
+        $results .= '{
+            "name": {
+                "first": "' . $row["FirstName"] . '",
+                "last": "' . $row["LastName"] . '",
+            },
+            "email": "' . $row["Email"] . '",
+            "phone": "' . $row["Phone"] . '"
+        }';
     }
 
     returnWithInfo($results);
