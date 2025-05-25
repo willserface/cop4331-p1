@@ -50,7 +50,7 @@ function returnWithError($err)
 
 function returnWithInfo($username, $firstName, $lastName)
 {
-    $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '},"error":null}';
+    $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '},"error":' . null . '}';
     sendResultInfoAsJson($retValue);
 }
 
@@ -85,6 +85,8 @@ function postAccount()
 function authenticated()
 {
     global $conn;
+    global $username;
+    global $password;
 
     $auth = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
     $auth->bind_param("ss", $username, $password);
