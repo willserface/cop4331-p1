@@ -129,56 +129,45 @@ function putAccount()
 {
     global $inData;
     global $username;
+    global $password;
     global $firstName;
     global $lastName;
     global $conn;
 
-    $newPassword = $inData["password"];
+    $getCurrent = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
+    $getCurrent->bind_param("si", $username, $password);
+    $getCurrent->execute();
+    $current = $getCurrent->get_result();
+    $getCurrent->close();
 
-    if (authenticated()) {
+    if ($user = $current->fetch_assoc()) {
 
-        if ($inData["username"] != null) {
-            http_response_code(400);
-            returnWithError("Username can't be modified");
-            return;
-        }
+        $newUsername = $inData["username"];
+        if ($newUsername == null) $newUsername = $username;
 
-        if ($newPassword != null and $inData["name"] != null) {
-            $update = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
-            $update->bind_param("ssss", $firstName, $lastName, $newPassword, $username);
-            $update->execute();
-            if ($update->affected_rows < 1) {
-                http_response_code(500);
-                returnWithError("Failed to update multiple Account fields");
-            }
-            $update->close();
-        } else if ($newPassword != null) {
-            $update = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
-            $update->bind_param("ss", $newPassword, $username);
-            $update->execute();
-            if ($update->affected_rows < 1) {
-                http_response_code(400);
-                returnWithError("Failed to update password");
-            }
-            $update->close();
-        } else if ($inData["name"] != null) {
-            $update = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ? WHERE Login = ?");
-            $update->bind_param("sss", $firstName, $lastName, $username);
-            $update->execute();
-            if ($update->affected_rows < 1) {
-                http_response_code(400);
-                returnWithError("Failed to update profile name");
-            }
-            $update->close();
+        $newPassword = $inData["password"];
+        if ($newPassword == null) $newPassword = $password;
+
+        if ($firstName == null) $firstName = $user["FirstName"];
+        if ($lastName == null) $lastName = $user["LastName"];
+
+        $updateContactsForeignKey = $conn->prepare("UPDATE Contacts SET UserLogin = ? WHERE UserLogin = ?");
+        $updateContactsForeignKey->bind_param("ss", $newUsername, $username);
+        $updateContactsForeignKey->execute();
+        $updateContactsForeignKey->close();
+
+        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Login = ?, Password = ? WHERE Login = ?");
+        $updateUser->bind_param("ssssi", $firstName, $lastName, $newUsername, $password, $username);
+        $updateUser->execute();
+
+        if ($updateUser->affected_rows == 1) {
+            http_response_code(201);
         } else {
-            http_response_code(400);
-            returnWithError("No changes were provided");
+            http_response_code(500);
+            returnWithError("Failed to update Account data");
         }
-
-        http_response_code(201);
-    } else {
-        http_response_code(401);
-    }
+        $updateUser->close();
+    } else http_response_code(401);
 }
 
 function deleteAccount()
