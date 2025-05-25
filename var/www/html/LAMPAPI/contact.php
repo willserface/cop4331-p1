@@ -120,7 +120,7 @@ function getContacts()
     }
 
     returnWithInfo($results);
-    $search->close();
+    $get->close();
 }
 
 function putContact()
