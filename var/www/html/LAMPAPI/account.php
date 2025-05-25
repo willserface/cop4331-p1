@@ -135,24 +135,26 @@ function putAccount()
         if ($inData["username"] != null) {
             http_response_code(400);
             returnWithError("Username cannot be changed");
-            return;
-        } else if ($newPassword == $password and $firstName == $user["FirstName"] and $lastName == $user["LastName"]) {
+        } else if (
+            $newPassword == $password and
+            $firstName == $user["FirstName"] and
+            $lastName == $user["LastName"]
+        ) {
             http_response_code(400);
             returnWithError("Request contains no data to change");
-            return;
-        }
-
-        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
-        $updateUser->bind_param("ssss", $firstName, $lastName, $newPassword, $username);
-        $updateUser->execute();
-
-        if ($updateUser->affected_rows == 1) {
-            http_response_code(201);
         } else {
-            http_response_code(500);
-            returnWithError("Failed to update Account data");
+            $update = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
+            $update->bind_param("ssss", $firstName, $lastName, $newPassword, $username);
+            $update->execute();
+
+            if ($update->affected_rows == 1) {
+                http_response_code(201);
+            } else {
+                http_response_code(500);
+                returnWithError("Failed to update Account data");
+            }
+            $update->close();
         }
-        $updateUser->close();
     } else http_response_code(401);
 }
 
