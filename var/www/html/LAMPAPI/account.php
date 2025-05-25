@@ -161,16 +161,15 @@ function putAccount()
 function deleteAccount()
 {
     global $username;
+    global $password;
     global $conn;
 
     $auth = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
     $auth->bind_param("ss", $username, $password);
     $auth->execute();
     $result = $auth->get_result();
-    $authenticated = $result->num_rows == 1;
-    $auth->close();
 
-    if ($authenticated) {
+    if ($result->num_rows == 1) {
         $delete = $conn->prepare("DELETE FROM Contacts WHERE UserLogin = ?");
         $delete->bind_param("s", $username);
         $delete->execute();
@@ -189,4 +188,6 @@ function deleteAccount()
     } else {
         http_response_code(401);
     }
+
+    $auth->close();
 }
