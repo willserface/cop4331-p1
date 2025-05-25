@@ -70,7 +70,7 @@ function postAccount()
     $check->bind_param("s", $username);
     $check->execute();
 
-    if ($check->num_rows == 0) {
+    if ($check->get_result()->num_rows == 0) {
         $insert = $conn->prepare("INSERT INTO Users (Login, FirstName, LastName, Password) VALUES (?, ?, ?, ?)");
         $insert->bind_param("ssss", $username, $firstName, $lastName, $password);
         $insert->execute();
