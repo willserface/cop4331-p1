@@ -14,8 +14,8 @@
     } 
     else
     {
-        $newusername = $conn->prepare("SELECT Login FROM Users WHERE Login= ?");
-        $newusername->bind_param("s", $username);
+        $newusername = $conn->prepare("SELECT Login FROM Users WHERE Login= ? AND Password = ?");
+        $newusername->bind_param("ss", $username, $password);
         $newusername->execute();
 
         if($username != NULL && $newusername == NULL)
