@@ -142,22 +142,24 @@ function putAccount()
 
     if ($user = $current->fetch_assoc()) {
 
-        $newUsername = $inData["username"];
-        if ($newUsername == null) $newUsername = $username;
-
         $newPassword = $inData["password"];
-        if ($newPassword == null) $newPassword = $password;
 
+        if ($inData["username"] != null) {
+            http_response_code(400);
+            returnWithError("Username cannot be changed");
+            return;
+        } else if ($newPassword == null and $firstName == null and $lastName == null) {
+            http_response_code(400);
+            returnWithError("Request contains no data to change");
+            return;
+        }
+
+        if ($newPassword == null) $newPassword = $password;
         if ($firstName == null) $firstName = $user["FirstName"];
         if ($lastName == null) $lastName = $user["LastName"];
 
-        $updateContactsForeignKey = $conn->prepare("UPDATE Contacts SET UserLogin = ? WHERE UserLogin = ?");
-        $updateContactsForeignKey->bind_param("ss", $newUsername, $username);
-        $updateContactsForeignKey->execute();
-        $updateContactsForeignKey->close();
-
-        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Login = ?, Password = ? WHERE Login = ?");
-        $updateUser->bind_param("sssss", $firstName, $lastName, $newUsername, $newPassword, $username);
+        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
+        $updateUser->bind_param("ssss", $firstName, $lastName, $newPassword, $username);
         $updateUser->execute();
 
         if ($updateUser->affected_rows == 1) {
