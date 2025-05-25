@@ -106,7 +106,7 @@ function getContacts()
     $results = "";
     $count = 0;
 
-    $get = $conn->prepare("SELECT * FROM Contacts WHERE (FirstName,LastName) LIKE ? AND UserLogin = ?");
+    $get = $conn->prepare("SELECT * FROM Contacts WHERE FirstName,LastName LIKE ? AND UserLogin = ?");
     $get->bind_param("ss", $username, $search);
     $get->execute();
     $result = $get->get_result();
