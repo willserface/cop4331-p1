@@ -126,14 +126,13 @@ function putAccount()
     global $lastName;
     global $conn;
 
-    $newUsername = $inData["username"];
     $newPassword = $inData["password"];
 
     $changed = 0;
 
     if (authenticated()) {
 
-        if ($newUsername != null) {
+        if ($inData["username"] != null) {
             http_response_code(400);
             returnWithError("Username can't be modified");
             return;
@@ -141,16 +140,16 @@ function putAccount()
 
         if ($newPassword != null) {
             $updatePassword = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
-            $updatePassword->bind_param("ss", $newPassword, $newUsername);
+            $updatePassword->bind_param("ss", $newPassword, $username);
             $updatePassword->execute();
             if ($updatePassword->affected_rows == 1) $changed++;
             else $changed = -3;
             $updatePassword->close();
         }
 
-        if ($inData["name"]) {
+        if ($inData["name"] != null) {
             $updateName = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ? WHERE Login = ?");
-            $updateName->bind_param("sss", $firstName, $lastName, $newUsername);
+            $updateName->bind_param("sss", $firstName, $lastName, $username);
             $updateName->execute();
             if ($updateName->affected_rows == 1) $changed++;
             else $changed = -3;
