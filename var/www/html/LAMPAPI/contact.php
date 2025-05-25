@@ -82,12 +82,13 @@ function postContact()
 {
     global $conn;
     global $username;
-    global $name;
     global $email;
     global $phone;
+    global $firstName;
+    global $lastName;
 
-    $create = $conn->prepare("INSERT INTO Contacts (FirstName, LastName, Phone, Email, UserLogin) VALUES (?, ?, ?, ?, ?)");
-    $create->bind_param("sssss", $name["first"], $name["last"], $phone, $email, $username);
+    $create = $conn->prepare("INSERT INTO Contacts (FirstName, LastName, Email, Phone, UserLogin) VALUES (?, ?, ?, ?, ?)");
+    $create->bind_param("sssss", $firstName, $lastName, $email, $phone, $username);
     $create->execute();
 
     returnWithError("201");
