@@ -134,7 +134,7 @@ function putAccount()
             $updatePrimaryKey->execute();
             $updatePrimaryKey->close();
 
-            $updateForeignKey = $conn->prepare("UPDATE Contacts SET UserID = ? WHERE UserLogin = ?");
+            $updateForeignKey = $conn->prepare("UPDATE Contacts SET UserLogin = ? WHERE UserLogin = ?");
             $updateForeignKey->bind_param("ss", $newUsername, $username);
             $updateForeignKey->execute();
             $updateForeignKey->close();
