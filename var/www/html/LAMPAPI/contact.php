@@ -120,6 +120,7 @@ function getContacts()
         }
         $count++;
         $results .= '{
+            "id": "' . $row["ID"] . '",
             "name": {
                 "first": "' . $row["FirstName"] . '",
                 "last": "' . $row["LastName"] . '",
