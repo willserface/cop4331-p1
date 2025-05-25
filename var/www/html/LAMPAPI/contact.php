@@ -62,7 +62,7 @@ function returnWithError($err)
 
 function returnWithInfo($results)
 {
-    $retValue = '{"results": ' . $results . ',"error":' . null . '}';
+    $retValue = '{"results": ' . $results . ',"error": null}';
     sendResultInfoAsJson($retValue);
 }
 
