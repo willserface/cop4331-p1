@@ -13,6 +13,8 @@ $lastName = $inData["name"]["last"];
 $email = $inData["email"];
 $phone = $inData["phone"];
 
+$search = "%" . $inData["search"] . "%";
+
 $conn = new mysqli("localhost", "Swimmer", "Swim1", "COP4331");
 
 if ($conn->connect_error) {
@@ -99,23 +101,25 @@ function getContacts()
 {
     global $conn;
     global $username;
-    $searchResults = "";
-    $searchCount = 0;
+    global $search;
 
-    $search = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND FirstName,LastName LIKE ?");
-    $search->bind_param("ss", $username, $search);
-    $search->execute();
-    $result = $search->get_result();
+    $results = "";
+    $count = 0;
+
+    $get = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND FirstName,LastName LIKE ?");
+    $get->bind_param("ss", $username, $search);
+    $get->execute();
+    $result = $get->get_result();
 
     while ($row = $result->fetch_assoc()) {
-        if ($searchCount > 0) {
-            $searchResults .= ',';
+        if ($count > 0) {
+            $results .= ',';
         }
-        $searchCount++;
-        $searchResults .= json_encode($row);
+        $count++;
+        $results .= json_encode($row);
     }
 
-    returnWithInfo($searchResults);
+    returnWithInfo($results);
     $search->close();
 }
 
