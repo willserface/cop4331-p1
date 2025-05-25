@@ -7,7 +7,7 @@ $request = explode("/", substr(@$_SERVER['PATH_INFO'], 1));
 $username = $_SERVER['PHP_AUTH_USER'];
 $password = $_SERVER['PHP_AUTH_PW'];
 
-$contactId = intval($request[1]);
+$contactId = intval($request[0]);
 
 $firstName = $inData["name"]["first"];
 $lastName = $inData["name"]["last"];
