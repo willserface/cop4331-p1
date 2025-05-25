@@ -90,22 +90,6 @@ function postAccount()
     }
 }
 
-function authenticated()
-{
-    global $conn;
-    global $username;
-    global $password;
-
-    $auth = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
-    $auth->bind_param("ss", $username, $password);
-    $auth->execute();
-    $result = $auth->get_result();
-
-    $authenticated = $result->num_rows == 1;
-    $auth->close();
-    return $authenticated;
-}
-
 function getAccount()
 {
     global $username;
@@ -177,7 +161,14 @@ function deleteAccount()
     global $username;
     global $conn;
 
-    if (authenticated()) {
+    $auth = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
+    $auth->bind_param("ss", $username, $password);
+    $auth->execute();
+    $result = $auth->get_result();
+    $authenticated = $result->num_rows == 1;
+    $auth->close();
+
+    if ($authenticated) {
         $delete = $conn->prepare("DELETE FROM Contacts WHERE UserLogin = ?");
         $delete->bind_param("s", $username);
         $delete->execute();
