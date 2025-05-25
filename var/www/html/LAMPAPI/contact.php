@@ -123,8 +123,10 @@ function getContacts()
     $get = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND CONCAT(FirstName, LastName) LIKE ?");
     $get->bind_param("ss", $username, $search);
     $get->execute();
+    $contacts = $get->get_result();
+    $get->close();
 
-    while ($row = $get->get_result()->fetch_assoc()) {
+    while ($row = $contacts->fetch_assoc()) {
         if ($count > 0) {
             $results .= ',';
         }
@@ -141,7 +143,6 @@ function getContacts()
     }
 
     returnWithInfo("[" . $results . "]");
-    $get->close();
 }
 
 function putContact()
@@ -154,7 +155,10 @@ function putContact()
     $getCurrent = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND ID = ?");
     $getCurrent->bind_param("si", $username, $contactId);
     $getCurrent->execute();
-    if ($contact = $getCurrent->get_result()->fetch_assoc()) {
+    $current = $getCurrent->get_result();
+    $getCurrent->close();
+
+    if ($contact = $current->fetch_assoc()) {
 
         $firstName = $inData["name"]["first"];
         if ($firstName == null) $firstName = $contact["FirstName"];
@@ -176,6 +180,7 @@ function putContact()
             http_response_code(500);
             returnWithError("Failed to update Contact");
         }
+
         $update->close();
     } else {
         http_response_code(404);
