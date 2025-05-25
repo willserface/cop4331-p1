@@ -187,6 +187,11 @@ function deleteAccount()
     global $conn;
 
     if (authenticated()) {
+        $delete = $conn->prepare("DELETE FROM Contacts WHERE UserLogin = ?");
+        $delete->bind_param("s", $username);
+        $delete->execute();
+        $delete->close();
+
         $delete = $conn->prepare("DELETE FROM Users WHERE Login = ?");
         $delete->bind_param("s", $username);
         $delete->execute();
