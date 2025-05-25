@@ -123,7 +123,7 @@ function getContacts()
             "id": "' . $row["ID"] . '",
             "name": {
                 "first": "' . $row["FirstName"] . '",
-                "last": "' . $row["LastName"] . '",
+                "last": "' . $row["LastName"] . '"
             },
             "email": "' . $row["Email"] . '",
             "phone": "' . $row["Phone"] . '"
