@@ -20,6 +20,7 @@ $search = "%" . $inData["search"] . "%";
 $conn = new mysqli("localhost", "Swimmer", "Swim1", "COP4331");
 
 if ($conn->connect_error) {
+    http_response_code(500);
     returnWithError("Failed to connect to MySQL");
 } else if (authenticated()) {
     switch ($method) {
@@ -37,7 +38,7 @@ if ($conn->connect_error) {
             break;
     }
 } else {
-    returnWithError("401");
+    http_response_code(401);
 }
 
 $conn->close();
@@ -95,7 +96,7 @@ function postContact()
     $create->bind_param("sssss", $firstName, $lastName, $email, $phone, $username);
     $create->execute();
 
-    returnWithError("201");
+    http_response_code(201);
     $create->close();
 }
 
@@ -139,10 +140,14 @@ function putContact()
     global $username;
     global $inData;
 
+    $changed = 0;
+
     if ($name = $inData["name"]) {
         $updateName = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ? WHERE UserLogin = ? AND ID = ?");
         $updateName->bind_param("sssi", $name["first"], $name["last"], $username, $contactId);
         $updateName->execute();
+        if ($updateName->affected_rows == 1) $changed++;
+        else $changed = -3;
         $updateName->close();
     }
 
@@ -150,6 +155,8 @@ function putContact()
         $updateEmail = $conn->prepare("UPDATE Contacts SET Email = ? WHERE UserLogin = ? AND ID = ?");
         $updateEmail->bind_param("ssi", $email, $username, $contactId);
         $updateEmail->execute();
+        if ($updateEmail->affected_rows == 1) $changed++;
+        else $changed = -3;
         $updateEmail->close();
     }
 
@@ -157,10 +164,18 @@ function putContact()
         $updatePhone = $conn->prepare("UPDATE Contacts SET Phone = ? WHERE UserLogin = ? AND ID = ?");
         $updatePhone->bind_param("ssi", $phone, $username, $contactId);
         $updatePhone->execute();
+        if ($updatePhone->affected_rows == 1) $changed++;
+        else $changed = -3;
         $updatePhone->close();
     }
 
-    returnWithError("201");
+    if ($changed >= 0) {
+        http_response_code(201);
+        returnWithError("201");
+    } else {
+        http_response_code(404);
+        returnWithError($changed);
+    }
 }
 
 function deleteContact()
@@ -172,7 +187,12 @@ function deleteContact()
     $delete = $conn->prepare("DELETE FROM Contacts WHERE UserLogin = ? AND ID = ?");
     $delete->bind_param("si", $username, $contactId);
     $delete->execute();
-    $delete->close();
 
-    returnWithError("204");
+    if ($delete->affected_rows == 1) {
+        http_response_code(204);
+    } else {
+        http_response_code(404);
+    }
+
+    $delete->close();
 }

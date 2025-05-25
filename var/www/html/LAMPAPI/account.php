@@ -13,6 +13,7 @@ $lastName = $inData["name"]["last"];
 $conn = new mysqli("localhost", "Swimmer", "Swim1", "COP4331");
 
 if ($conn->connect_error) {
+    http_response_code(500);
     returnWithError("Failed to connect to MySQL");
 } else switch ($method) {
     case 'POST':
@@ -75,10 +76,10 @@ function postAccount()
         $insert->bind_param("ssss", $username, $firstName, $lastName, $password);
         $insert->execute();
         $insert->close();
-        returnWithError("201");
+        http_response_code(201);
     } else {
         $insert->close();
-        returnWithError("400");
+        http_response_code(400);
     }
 }
 
@@ -113,7 +114,7 @@ function getAccount()
     if ($row = $result->fetch_assoc()) {
         returnWithInfo($row["Login"], $row["FirstName"], $row["LastName"]);
     } else {
-        returnWithError("404");
+        http_response_code(201);
     }
 }
 
@@ -128,12 +129,16 @@ function putAccount()
     $newUsername = $inData["username"];
     $newPassword = $inData["password"];
 
+    $changed = 0;
+
     if (authenticated()) {
 
         if ($newUsername != null) {
             $updatePrimaryKey = $conn->prepare("UPDATE Users SET Login = ? WHERE Login = ?");
             $updatePrimaryKey->bind_param("ss", $newUsername, $username);
             $updatePrimaryKey->execute();
+            if ($updatePrimaryKey->affected_rows == 1) $changed++;
+            else $changed = -3;
             $updatePrimaryKey->close();
 
             $updateForeignKey = $conn->prepare("UPDATE Contacts SET UserLogin = ? WHERE UserLogin = ?");
@@ -146,27 +151,28 @@ function putAccount()
             $updatePassword = $conn->prepare("UPDATE Users SET Password = ? WHERE Login = ?");
             $updatePassword->bind_param("ss", $newPassword, $newUsername);
             $updatePassword->execute();
+            if ($updatePassword->affected_rows == 1) $changed++;
+            else $changed = -3;
             $updatePassword->close();
         }
 
-        if ($firstName != null) {
-            $updateFirstName = $conn->prepare("UPDATE Users SET FirstName = ? WHERE Login = ?");
-            $updateFirstName->bind_param("ss", $firstName, $newUsername);
-            $updateFirstName->execute();
-            $updateFirstName->close();
+        if ($inData["name"]) {
+            $updateName = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ? WHERE Login = ?");
+            $updateName->bind_param("sss", $firstName, $lastName, $newUsername);
+            $updateName->execute();
+            if ($updateName->affected_rows == 1) $changed++;
+            else $changed = -3;
+            $updateName->close();
         }
 
-        if ($lastName != null) {
-            $updateLastName = $conn->prepare("UPDATE Users SET LastName = ? WHERE Login = ?");
-            $updateLastName->bind_param("ss", $lastName, $newUsername);
-            $updateLastName->execute();
-            $updateLastName->close();
+        if ($changed > 0) {
+            http_response_code(201);
+        } else {
+            http_response_code(404);
+            returnWithError($changed);
         }
-
-        returnWithError("201");
-
     } else {
-        returnWithError("401");
+        http_response_code(401);
     }
 }
 
@@ -181,8 +187,8 @@ function deleteAccount()
         $delete->execute();
         $delete->close();
 
-        returnWithError("204");
+        http_response_code(204);
     } else {
-        returnWithError("401");
+        http_response_code(401);
     }
 }
