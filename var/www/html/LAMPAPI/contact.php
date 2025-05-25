@@ -7,6 +7,8 @@ $request = explode("/", substr(@$_SERVER['PATH_INFO'], 1));
 $username = $_SERVER['PHP_AUTH_USER'];
 $password = $_SERVER['PHP_AUTH_PW'];
 
+$contactId = intval($request[1]);
+
 $firstName = $inData["name"]["first"];
 $lastName = $inData["name"]["last"];
 
@@ -133,26 +135,27 @@ function getContacts()
 function putContact()
 {
     global $conn;
+    global $contactId;
     global $username;
     global $inData;
 
     if ($name = $inData["name"]) {
         $updateName = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ? WHERE UserLogin = ? AND ID = ?");
-        $updateName->bind_param("ssi", $name["first"], $name["last"], $inData["id"]);
+        $updateName->bind_param("sssi", $name["first"], $name["last"], $username, $contactId);
         $updateName->execute();
         $updateName->close();
     }
 
     if ($email = $inData["email"]) {
         $updateEmail = $conn->prepare("UPDATE Contacts SET Email = ? WHERE UserLogin = ? AND ID = ?");
-        $updateEmail->bind_param("ssi", $email, $username, $inData["id"]);
+        $updateEmail->bind_param("ssi", $email, $username, $contactId);
         $updateEmail->execute();
         $updateEmail->close();
     }
 
     if ($phone = $inData["phone"]) {
         $updatePhone = $conn->prepare("UPDATE Contacts SET Phone = ? WHERE UserLogin = ? AND ID = ?");
-        $updatePhone->bind_param("ssi", $phone, $username, $inData["id"]);
+        $updatePhone->bind_param("ssi", $phone, $username, $contactId);
         $updatePhone->execute();
         $updatePhone->close();
     }
@@ -163,11 +166,11 @@ function putContact()
 function deleteContact()
 {
     global $conn;
+    global $contactId;
     global $username;
-    global $inData;
 
     $delete = $conn->prepare("DELETE FROM Contacts WHERE UserLogin = ? AND ID = ?");
-    $delete->bind_param("si", $username, $inData["id"]);
+    $delete->bind_param("si", $username, $contactId);
     $delete->execute();
     $delete->close();
 
