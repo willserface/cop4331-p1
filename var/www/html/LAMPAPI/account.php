@@ -51,7 +51,7 @@ function returnWithError($err)
 
 function returnWithInfo($username, $firstName, $lastName)
 {
-    $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '}}';
+    $retValue = '{"username": ' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '}}';
     sendResultInfoAsJson($retValue);
 }
 
@@ -156,8 +156,8 @@ function putAccount()
         $updateContactsForeignKey->execute();
         $updateContactsForeignKey->close();
 
-        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Login = ?, Password = ? WHERE Login = ?");
-        $updateUser->bind_param("ssssi", $firstName, $lastName, $newUsername, $password, $username);
+        $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Login = ?, Password = ? WHERE UserLogin = ?");
+        $updateUser->bind_param("ssssi", $firstName, $lastName, $newUsername, $newPassword, $username);
         $updateUser->execute();
 
         if ($updateUser->affected_rows == 1) {
