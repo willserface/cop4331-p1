@@ -93,7 +93,9 @@ function authenticated()
     $auth->execute();
     $result = $auth->get_result();
 
-    return $result->num_rows == 1;
+    $authenticated = $result->num_rows == 1;
+    $auth->close();
+    return $authenticated;
 }
 
 function getAccount()
