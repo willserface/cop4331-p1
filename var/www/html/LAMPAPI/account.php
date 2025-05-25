@@ -16,67 +16,74 @@ if ($conn->connect_error) {
     returnWithError("Failed to connect to MySQL");
 } else switch ($method) {
     case 'POST':
-        postAccount($conn);
+        postAccount();
         break;
     case 'GET':
-        getAccount($conn);
+        getAccount();
         break;
     case 'PUT':
-        putAccount($conn);
+        putAccount();
         break;
     case 'DELETE':
-        deleteAccount($conn);
+        deleteAccount();
         break;
 }
 
 $conn->close();
 
-function getRequestInfo() {
+function getRequestInfo()
+{
     return json_decode(file_get_contents('php://input'), true);
 }
 
-function sendResultInfoAsJson($obj) {
+function sendResultInfoAsJson($obj)
+{
     header('Content-type: application/json');
     echo $obj;
 }
 
-function returnWithError($err) {
+function returnWithError($err)
+{
     $retValue = '{"error":"' . $err . '"}';
     sendResultInfoAsJson($retValue);
 }
 
-function returnWithInfo( $username, $firstName, $lastName )
+function returnWithInfo($username, $firstName, $lastName)
 {
     $retValue = '{"username":' . $username . ',"name": {"first": ' . $firstName . ',"last": ' . $lastName . '},"error":null"}';
-    sendResultInfoAsJson( $retValue );
+    sendResultInfoAsJson($retValue);
 }
 
 
-function postAccount($conn) {
+function postAccount()
+{
     global $inData;
     global $firstName;
     global $lastName;
+    global $conn;
 
     $username = $inData["username"];
     $password = $inData["password"];
 
-    $checkForExisting = $conn->prepare("SELECT * FROM Users WHERE Login = ?");
-    $checkForExisting->bind_param("s", $username);
-    $checkForExisting->execute();
+    $insert = $conn->prepare("SELECT * FROM Users WHERE Login = ?");
+    $insert->bind_param("s", $username);
+    $insert->execute();
 
-    if ($checkForExisting->num_rows == 0) {
+    if ($insert->num_rows == 0) {
+        $insert->close();
         $insert = $conn->prepare("INSERT INTO Users (Login, FirstName, LastName, Password) VALUES (?, ?, ?, ?)");
         $insert->bind_param("ssss", $username, $firstName, $lastName, $password);
         $insert->execute();
         $insert->close();
         returnWithError("201");
     } else {
+        $insert->close();
         returnWithError("400");
     }
-    $checkForExisting->close();
 }
 
-function authenticated() {
+function authenticated()
+{
     global $conn;
 
     $auth = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
@@ -87,9 +94,11 @@ function authenticated() {
     return $result->num_rows == 1;
 }
 
-function getAccount($conn) {
+function getAccount()
+{
     global $username;
     global $password;
+    global $conn;
 
     $login = $conn->prepare("SELECT * FROM Users WHERE Login = ? AND Password = ?");
     $login->bind_param("ss", $username, $password);
@@ -104,12 +113,13 @@ function getAccount($conn) {
     }
 }
 
-function putAccount($conn)
+function putAccount()
 {
     global $inData;
     global $username;
     global $firstName;
     global $lastName;
+    global $conn;
 
     $newUsername = $inData["username"];
     $newPassword = $inData["password"];
@@ -156,9 +166,10 @@ function putAccount($conn)
     }
 }
 
-function deleteAccount($conn)
+function deleteAccount()
 {
     global $username;
+    global $conn;
 
     if (authenticated()) {
         $delete = $conn->prepare("DELETE FROM Users WHERE Login = ?");
