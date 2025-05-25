@@ -176,5 +176,9 @@ function deleteAccount()
         $delete->bind_param("s", $username);
         $delete->execute();
         $delete->close();
+
+        returnWithError("204");
+    } else {
+        returnWithError("401");
     }
 }
