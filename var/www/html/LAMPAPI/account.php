@@ -66,22 +66,27 @@ function postAccount()
     $username = $inData["username"];
     $password = $inData["password"];
 
-    $insert = $conn->prepare("SELECT * FROM Users WHERE Login = ?");
-    $insert->bind_param("s", $username);
-    $insert->execute();
+    $check = $conn->prepare("SELECT * FROM Users WHERE Login = ?");
+    $check->bind_param("s", $username);
+    $check->execute();
 
-    if ($insert->num_rows == 0) {
-        $insert->close();
+    if ($check->num_rows == 0) {
         $insert = $conn->prepare("INSERT INTO Users (Login, FirstName, LastName, Password) VALUES (?, ?, ?, ?)");
         $insert->bind_param("ssss", $username, $firstName, $lastName, $password);
         $insert->execute();
+
+        if ($insert->affected_rows == 1) {
+            http_response_code(200);
+        } else {
+            http_response_code(500);
+            returnWithError("Failed to create Account");
+        }
         $insert->close();
         http_response_code(201);
         returnWithInfo($username, $firstName, $lastName);
     } else {
-        $insert->close();
-        http_response_code(500);
-        returnWithError("Failed to create Account");
+        http_response_code(409);
+        returnWithError("Username already taken");
     }
 }
 
