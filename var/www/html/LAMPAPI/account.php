@@ -128,19 +128,19 @@ function putAccount()
 
         $newPassword = $inData["password"];
 
+        if ($newPassword == null) $newPassword = $password;
+        if ($firstName == null) $firstName = $user["FirstName"];
+        if ($lastName == null) $lastName = $user["LastName"];
+
         if ($inData["username"] != null) {
             http_response_code(400);
             returnWithError("Username cannot be changed");
             return;
-        } else if ($newPassword == null and $firstName == null and $lastName == null) {
+        } else if ($newPassword == $password and $firstName == $user["FirstName"] and $lastName == $user["LastName"]) {
             http_response_code(400);
             returnWithError("Request contains no data to change");
             return;
         }
-
-        if ($newPassword == null) $newPassword = $password;
-        if ($firstName == null) $firstName = $user["FirstName"];
-        if ($lastName == null) $lastName = $user["LastName"];
 
         $updateUser = $conn->prepare("UPDATE Users SET FirstName = ?, LastName = ?, Password = ? WHERE Login = ?");
         $updateUser->bind_param("ssss", $firstName, $lastName, $newPassword, $username);

@@ -148,8 +148,10 @@ function getContacts()
 function putContact()
 {
     global $conn;
-    global $contactId;
+    global $firstName;
+    global $lastName;
     global $username;
+    global $contactId;
     global $inData;
 
     $getCurrent = $conn->prepare("SELECT * FROM Contacts WHERE UserLogin = ? AND ID = ?");
@@ -160,10 +162,7 @@ function putContact()
 
     if ($contact = $current->fetch_assoc()) {
 
-        $firstName = $inData["name"]["first"];
         if ($firstName == null) $firstName = $contact["FirstName"];
-
-        $lastName = $inData["name"]["last"];
         if ($lastName == null) $lastName = $contact["LastName"];
 
         $email = $inData["email"];
@@ -171,6 +170,17 @@ function putContact()
 
         $phone = $inData["phone"];
         if ($phone == null) $phone = $contact["Phone"];
+
+        if (
+            $firstName == $contact["FirstName"] and
+            $lastName == $contact["LastName"] and
+            $email == $contact["Email"] and
+            $phone == $contact["Phone"]
+        ) {
+            http_response_code(400);
+            returnWithError("Request contains no data to change");
+            return;
+        }
 
         $update = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ?, Email = ?, Phone = ? WHERE UserLogin = ? AND ID = ?");
         $update->bind_param("sssssi", $firstName, $lastName, $email, $phone, $username, $contactId);
