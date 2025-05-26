@@ -43,10 +43,20 @@ function getRequestInfo()
 function sendResultInfoAsJson($obj)
 {
     header('Content-type: application/json');
-    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Origin: http://www.shark-paradise.com');
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Access-Control-Request-Headers, Access-Control-Allow-Methods, Access-Control-Allow-Origin, Accept, Origin, Content-Type, Authorization, x-idt');
+    header('Access-Control-Allow-Headers: 
+    Access-Control-Allow-Headers, 
+    Access-Control-Request-Headers, 
+    Access-Control-Allow-Methods, 
+    Access-Control-Allow-Origin, 
+    Accept, 
+    Origin, 
+    Content-Type, 
+    Authorization, 
+    x-ijt'
+    );
     echo $obj;
 }
 
