@@ -36,6 +36,9 @@ if ($conn->connect_error) {
         case 'DELETE':
             deleteContact();
             break;
+        default:
+            http_response_code(204);
+            sendResultInfoAsJson('{"method: "' . $method . '"}');
     }
 } else {
     http_response_code(401);
@@ -51,6 +54,10 @@ function getRequestInfo()
 function sendResultInfoAsJson($obj)
 {
     header('Content-type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Access-Control-Request-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type, Authorization');
     echo $obj;
 }
 
