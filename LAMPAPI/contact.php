@@ -15,7 +15,7 @@ $lastName = $inData["name"]["last"];
 $email = $inData["email"];
 $phone = $inData["phone"];
 
-$search = "%" . $inData["search"] . "%";
+$search = "%" . $_GET["search"] . "%";
 
 $conn = new mysqli("localhost", "Swimmer", "Swim1", "COP4331");
 
