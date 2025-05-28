@@ -91,17 +91,19 @@ function authenticated() {
     global $username;
     global $password;
 
-    // --- DEBUGGING LINES START ---
     error_log("DEBUG: PHP_AUTH_USER: " . ($_SERVER['PHP_AUTH_USER'] ?? 'NOT SET'));
     error_log("DEBUG: PHP_AUTH_PW: " . ($_SERVER['PHP_AUTH_PW'] ?? 'NOT SET'));
     error_log("DEBUG: HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
-    // --- DEBUGGING LINES END ---
 
     if (empty($username) || empty($password)) {
         return false;
     }
 
-    $auth = $conn->prepare("SELECT UserID FROM Users WHERE Login = ? AND Password = ?");
+    // --- CHANGE THIS LINE ---
+    // Change "SELECT UserID FROM Users" to "SELECT Login FROM Users" or "SELECT 1 FROM Users"
+    $auth = $conn->prepare("SELECT Login FROM Users WHERE Login = ? AND Password = ?");
+    // --- END CHANGE ---
+
     if ($auth === false) {
         returnWithError("Database prepare failed for authentication: " . $conn->error);
         return false;
