@@ -9,12 +9,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
+$username = $_SERVER['PHP_AUTH_USER'] ?? '';
+$password = $_SERVER['PHP_AUTH_PW'] ?? '';
+
 $conn = new mysqli("localhost", "Swimmer", "Swim1", "COP4331");
 
 if ($conn->connect_error) {
     http_response_code(500);
     returnWithError("Failed to connect to MySQL: " . $conn->connect_error);
-} else if (authenticated()) {
+} else if (authenticated($username, $password)) {
     $method = $_SERVER['REQUEST_METHOD'];
     $request = explode("/", substr(@$_SERVER['PATH_INFO'], 1));
     $contactId = intval($request[0] ?? 0);
@@ -23,7 +26,7 @@ if ($conn->connect_error) {
     if ($method == 'POST' || $method == 'PUT') {
         $inData = getRequestInfo();
     }
-    
+
     $firstName = $inData["name"]["first"] ?? null;
     $lastName = $inData["name"]["last"] ?? null;
     $email = $inData["email"] ?? null;
@@ -31,8 +34,8 @@ if ($conn->connect_error) {
 
     $search = "%" . ($_GET["search"] ?? '') . "%";
 
-    $username = $_SERVER['PHP_AUTH_USER'] ?? '';
-    $password = $_SERVER['PHP_AUTH_PW'] ?? '';
+    //$username = $_SERVER['PHP_AUTH_USER'] ?? '';
+    //$password = $_SERVER['PHP_AUTH_PW'] ?? '';
 
     switch ($method) {
         case 'POST':
@@ -86,48 +89,33 @@ function returnWithInfo($results) {
     sendResultInfoAsJson($retValue);
 }
 
-function authenticated() {
+function authenticated($username, $password) {
     global $conn;
-    global $username; // This should be 'Swimmer'
-    global $password; // This should be 'Swim1'
-
-    error_log("DEBUG AUTH: PHP_AUTH_USER: " . ($_SERVER['PHP_AUTH_USER'] ?? 'NOT SET'));
-    error_log("DEBUG AUTH: PHP_AUTH_PW: " . ($_SERVER['PHP_AUTH_PW'] ?? 'NOT SET'));
-    error_log("DEBUG AUTH: HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
 
     if (empty($username) || empty($password)) {
-        error_log("DEBUG AUTH: Username or password is empty after extraction. Returning false.");
         return false;
     }
 
     $sql = "SELECT Login FROM Users WHERE Login = ? AND Password = ?";
-    error_log("DEBUG AUTH: Preparing SQL query: " . $sql);
 
     $auth = $conn->prepare($sql);
 
     if ($auth === false) {
-        error_log("DEBUG AUTH: Database prepare failed: " . $conn->error);
-        returnWithError("Database prepare failed for authentication: " . $conn->error);
         return false;
     }
 
     $auth->bind_param("ss", $username, $password);
-    error_log("DEBUG AUTH: Bound parameters: Username='" . $username . "', Password='" . $password . "'");
 
     $executeSuccess = $auth->execute();
     if ($executeSuccess === false) {
-        error_log("DEBUG AUTH: SQL execution failed: " . $auth->error);
-        returnWithError("SQL execution failed for authentication: " . $auth->error);
         $auth->close();
         return false;
     }
 
     $result = $auth->get_result();
     $num_rows = $result->num_rows;
-    error_log("DEBUG AUTH: Query returned " . $num_rows . " rows.");
 
     $authenticated = ($num_rows == 1);
-    error_log("DEBUG AUTH: Authentication result: " . ($authenticated ? "TRUE" : "FALSE"));
 
     $auth->close();
     return $authenticated;
@@ -174,7 +162,7 @@ function getContacts() {
     $results = [];
 
     $searchTerm = trim($search, '%');
-    
+
     $sql = "SELECT ID, FirstName, LastName, Email, Phone FROM Contacts WHERE UserLogin = ?";
     $params = [$username];
     $types = "s";
@@ -194,7 +182,7 @@ function getContacts() {
         returnWithError("Database prepare failed for getContacts: " . $conn->error);
         return;
     }
-    
+
     $get->bind_param($types, ...$params);
     $get->execute();
     $contacts = $get->get_result();
@@ -208,7 +196,7 @@ function getContacts() {
             "phone" => $row["Phone"]
         ];
     }
-    
+
     http_response_code(200);
     echo json_encode(["results" => $results]);
 }
