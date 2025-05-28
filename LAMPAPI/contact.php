@@ -88,31 +88,47 @@ function returnWithInfo($results) {
 
 function authenticated() {
     global $conn;
-    global $username;
-    global $password;
+    global $username; // This should be 'Swimmer'
+    global $password; // This should be 'Swim1'
 
-    error_log("DEBUG: PHP_AUTH_USER: " . ($_SERVER['PHP_AUTH_USER'] ?? 'NOT SET'));
-    error_log("DEBUG: PHP_AUTH_PW: " . ($_SERVER['PHP_AUTH_PW'] ?? 'NOT SET'));
-    error_log("DEBUG: HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
+    error_log("DEBUG AUTH: PHP_AUTH_USER: " . ($_SERVER['PHP_AUTH_USER'] ?? 'NOT SET'));
+    error_log("DEBUG AUTH: PHP_AUTH_PW: " . ($_SERVER['PHP_AUTH_PW'] ?? 'NOT SET'));
+    error_log("DEBUG AUTH: HTTP_AUTHORIZATION: " . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
 
     if (empty($username) || empty($password)) {
+        error_log("DEBUG AUTH: Username or password is empty after extraction. Returning false.");
         return false;
     }
 
-    // --- CHANGE THIS LINE ---
-    // Change "SELECT UserID FROM Users" to "SELECT Login FROM Users" or "SELECT 1 FROM Users"
-    $auth = $conn->prepare("SELECT Login FROM Users WHERE Login = ? AND Password = ?");
-    // --- END CHANGE ---
+    $sql = "SELECT Login FROM Users WHERE Login = ? AND Password = ?";
+    error_log("DEBUG AUTH: Preparing SQL query: " . $sql);
+
+    $auth = $conn->prepare($sql);
 
     if ($auth === false) {
+        error_log("DEBUG AUTH: Database prepare failed: " . $conn->error);
         returnWithError("Database prepare failed for authentication: " . $conn->error);
         return false;
     }
-    $auth->bind_param("ss", $username, $password);
-    $auth->execute();
-    $result = $auth->get_result();
 
-    $authenticated = $result->num_rows == 1;
+    $auth->bind_param("ss", $username, $password);
+    error_log("DEBUG AUTH: Bound parameters: Username='" . $username . "', Password='" . $password . "'");
+
+    $executeSuccess = $auth->execute();
+    if ($executeSuccess === false) {
+        error_log("DEBUG AUTH: SQL execution failed: " . $auth->error);
+        returnWithError("SQL execution failed for authentication: " . $auth->error);
+        $auth->close();
+        return false;
+    }
+
+    $result = $auth->get_result();
+    $num_rows = $result->num_rows;
+    error_log("DEBUG AUTH: Query returned " . $num_rows . " rows.");
+
+    $authenticated = ($num_rows == 1);
+    error_log("DEBUG AUTH: Authentication result: " . ($authenticated ? "TRUE" : "FALSE"));
+
     $auth->close();
     return $authenticated;
 }
