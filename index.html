@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharkNet - Underwater Adventure!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /*
+         * SharkNet - Underwater Adventure!
+         * A more basic, colorful, and animated version.
+         * Now displays all users on login and allows search refinement.
+         */
+
+        :root {
+            --ocean-blue: #3498db; /* Brighter blue */
+            --ocean-deep-blue: #2980b9;
+            --sand-yellow: #f1c40f;
+            --coral-pink: #e91e63;
+            --seaweed-green: #2ecc71;
+            --bubble-color: rgba(200, 225, 255, 0.6);
+            --text-light: #ffffff;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Baloo 2', cursive; /* Fun, rounded font */
+            background-color: var(--ocean-blue);
+            background-image: linear-gradient(to bottom, var(--ocean-blue) 60%, var(--sand-yellow) 100%);
+            color: var(--text-light);
+            display: flex;
+            align-items: center; /* Centers children vertically in flex container */
+            justify-content: center; /* Centers children horizontally in flex container */
+            min-height: 100vh;
+            overflow-x: hidden; /* Hide horizontal overflow for animations */
+            overflow-y: auto; /* Allow scrolling if content is too long */
+            position: relative; /* For positioning animated elements */
+            padding-top: 80px; /* Adjusted for about us button */
+            padding-bottom: 150px; /* Space for treasure chest and prevent overlap */
+        }
+
+        /* Animated Bubbles Background */
+        .bubbles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none; /* Bubbles should not interfere with clicks */
+            overflow: hidden; /* Contained within body */
+        }
+
+        .bubble {
+            position: absolute;
+            background-color: var(--bubble-color);
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: rise 10s infinite ease-in;
+        }
+
+        .bubble:nth-child(1) { width: 20px; height: 20px; left: 10%; animation-duration: 8s; animation-delay: 0s; }
+        .bubble:nth-child(2) { width: 25px; height: 25px; left: 20%; animation-duration: 7s; animation-delay: 1s; }
+        .bubble:nth-child(3) { width: 15px; height: 15px; left: 35%; animation-duration: 9s; animation-delay: 2s; }
+        .bubble:nth-child(4) { width: 30px; height: 30px; left: 50%; animation-duration: 6s; animation-delay: 0.5s; }
+        .bubble:nth-child(5) { width: 18px; height: 18px; left: 65%; animation-duration: 10s; animation-delay: 1.5s; }
+        .bubble:nth-child(6) { width: 22px; height: 22px; left: 80%; animation-duration: 8s; animation-delay: 2.5s; }
+        .bubble:nth-child(7) { width: 28px; height: 28px; left: 90%; animation-duration: 7s; animation-delay: 0.2s; }
+        .bubble:nth-child(8) { width: 12px; height: 12px; left: 5%; animation-duration: 11s; animation-delay: 3s; }
+        .bubble:nth-child(9) { width: 32px; height: 32px; left: 25%; animation-duration: 5s; animation-delay: 1s; }
+        .bubble:nth-child(10) { width: 17px; height: 17px; left: 70%; animation-duration: 9s; animation-delay: 0s; }
+
+
+        @keyframes rise {
+            0% {
+                bottom: -50px;
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(20px);
+            }
+            100% {
+                bottom: 105vh; /* Rise slightly above the viewport */
+                transform: translateX(-20px);
+            }
+        }
+
+        /* Main Content Area */
+        .content-area {
+            background-color: rgba(41, 128, 185, 0.8); /* Slightly more opaque */
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px solid var(--ocean-deep-blue);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            position: relative; /* Ensure it's above bubbles */
+            z-index: 10; /* Higher z-index */
+            width: 90%;
+            max-width: 500px; /* Slightly wider for more content */
+            
+            /* --- CENTERING FIX --- */
+            margin: auto; /* This will center the box both horizontally and vertically within the flex container (body) */
+        }
+
+        .form-input {
+            background-color: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--ocean-deep-blue);
+            color: var(--text-dark);
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-family: 'Baloo 2', cursive;
+            transition: border-color 0.3s ease, transform 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-input:focus {
+            border-color: var(--sand-yellow);
+            transform: scale(1.02);
+            outline: none;
+        }
+
+        .btn-fun {
+            background-color: var(--coral-pink);
+            color: var(--text-light);
+            padding: 10px 20px;
+            border-radius: 25px; /* More rounded, fun shape */
+            border: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        .btn-fun:hover {
+            background-color: #d81b60; /* Darker pink */
+            transform: translateY(-3px) scale(1.05);
+        }
+        .btn-fun:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+
+        .btn-secondary-fun {
+            background-color: var(--seaweed-green);
+        }
+        .btn-secondary-fun:hover {
+            background-color: #27ae60; /* Darker green */
+        }
+
+        h1, h2 {
+            color: var(--text-light);
+            text-shadow: 1px 1px 2px var(--text-dark);
+        }
+        h1 { font-size: 2em; margin-bottom: 0.5em; } /* Slightly smaller for more content */
+        h2 { font-size: 1.6em; margin-bottom: 0.5em; }
+        p { margin-bottom: 1em; color: #f0f0f0; }
+
+
+        /* Animated Elements */
+        .scuba-diver {
+            position: fixed; /* Fixed position so it doesn't scroll */
+            width: 70px; /* Adjust size as needed */
+            height: auto;
+            left: 3%;
+            top: 15%;
+            bottom: unset;
+            animation: floatDiver 8s ease-in-out infinite;
+            z-index: 5;
+        }
+
+        @keyframes floatDiver {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        .shark {
+            position: fixed; /* Fixed position */
+            width: 90px; /* Adjust size */
+            height: auto;
+            z-index: 3; /* Behind diver but above bubbles */
+        }
+
+        /* Shark 1: Swims from Left to Right (head leading) */
+        .shark.shark1 {
+            left: -100px; /* Start off-screen left */
+            bottom: 45%;
+            animation: swimLeftToRight 12s linear infinite;
+            transform: scaleX(1); /* Ensure it faces right (default direction) */
+        }
+
+        @keyframes swimLeftToRight {
+            0% { left: -100px; } /* Start completely off-screen left */
+            100% { left: 100vw; } /* End completely off-screen right (100vw is viewport width) */
+        }
+
+        /* Shark 2: Swims from Right to Left (head leading) */
+        .shark.shark2 {
+            right: -100px; /* Start off-screen right */
+            bottom: 25%;
+            animation: swimRightToLeft 18s linear infinite;
+            animation-delay: 3s;
+            transform: scaleX(-1); /* Flip the shark image to face left */
+        }
+
+        @keyframes swimRightToLeft {
+            0% { right: -100px; } /* Start completely off-screen right */
+            100% { right: 100vw; } /* End completely off-screen left */
+        }
+
+        .treasure-chest {
+            position: fixed; /* Fixed position */
+            width: 80px; /* Adjust size */
+            height: auto;
+            bottom: 20px; /* Sits on the "sand" */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4;
+        }
+
+        .search-results-display {
+            background-color: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 100px;
+            max-height: 300px; /* Allow scrolling for many results */
+            overflow-y: auto; /* Scroll if content overflows */
+            border: 1px dashed var(--ocean-deep-blue);
+            color: var(--text-light);
+            text-align: left; /* Align results to the left */
+        }
+        .search-result-item {
+            background-color: rgba(0,0,0,0.25);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--sand-yellow);
+            display: flex; /* For aligning text and buttons */
+            flex-direction: column; /* Stack info and buttons vertically initially */
+            gap: 8px; /* Space between text and buttons */
+        }
+
+        .search-result-item .contact-info {
+            flex-grow: 1; /* Allow info to take available space */
+        }
+
+        .search-result-item .contact-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end; /* Align buttons to the right */
+        }
+        
+        /* Small buttons for actions */
+        .btn-action {
+            background-color: var(--seaweed-green);
+            color: var(--text-light);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-action.edit { background-color: var(--sand-yellow); color: var(--text-dark); }
+        .btn-action.delete { background-color: var(--coral-pink); }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .btn-action.edit:hover { background-color: #e0b40e; }
+        .btn-action.delete:hover { background-color: #c00040; }
+
+
+        .search-result-item h3 { color: var(--sand-yellow); font-size: 1.1em; margin-bottom: 3px;}
+        .search-result-item p { font-size: 0.9em; margin-bottom: 2px; color: #e0f7fa;}
+        .search-result-item p small { color: #a7d8de; }
+
+        /* About Us button specific styling */
+        .about-button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 20; /* Ensure it's above other elements */
+        }
+
+        /* Go Back button for About Us page */
+        .btn-go-back {
+            background-color: var(--seaweed-green);
+        }
+        .btn-go-back:hover {
+            background-color: #27ae60;
+        }
+
+        /* --- New About Us Specific Styles --- */
+        .about-crew-section {
+            display: flex;
+            flex-wrap: wrap; /* Allows items to wrap to next line on smaller screens */
+            justify-content: center; /* Center items horizontally */
+            gap: 20px; /* Space between bubbles and boxes */
+            margin-bottom: 30px;
+            align-items: flex-start; /* Align items to the top if they have different heights */
+        }
+
+        .about-crew-item {
+            flex: 0 0 calc(50% - 20px); /* Two items per row, accounting for gap */
+            max-width: calc(50% - 20px); /* Max width for each item */
+            display: flex;
+            flex-direction: column; /* Stack bubble and info vertically */
+            align-items: center; /* Center content within each item */
+            text-align: center;
+            margin-bottom: 20px; /* Space between rows of items */
+        }
+
+        @media (max-width: 640px) { /* Adjust for smaller screens like phones */
+            .about-crew-item {
+                flex: 0 0 100%; /* One item per row on very small screens */
+                max-width: 100%;
+            }
+        }
+
+
+        .crew-bubble {
+            width: 120px; /* Large bubble size */
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px; /* Space between bubble and info box */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 3px solid var(--bubble-color);
+            transition: transform 0.3s ease;
+        }
+
+        .crew-bubble:hover {
+            transform: translateY(-5px) scale(1.05); /* Slight lift and scale on hover */
+        }
+
+        .crew-bubble .icon {
+            font-size: 4em; /* Size of the emoji/image inside */
+            line-height: 1; /* Adjust line height to center emoji */
+        }
+
+        .crew-info-box {
+            background-color: rgba(0,0,0,0.35); /* Darker, slightly transparent */
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid var(--ocean-deep-blue);
+            color: var(--text-light);
+            text-align: left;
+            width: 100%; /* Take full width of its parent (.about-crew-item) */
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+        .crew-info-box h3 {
+            color: var(--sand-yellow);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .crew-info-box p {
+            font-size: 0.9em;
+            color: #e0f7fa;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+        .crew-info-box p small {
+            color: #a7d8de;
+            display: block; /* Ensures note is on its own line */
+            margin-top: 8px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px); /* Safari support */
+        }
+        .modal-content {
+            background-color: var(--ocean-deep-blue);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            z-index: 60;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="bubbles">
+        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <svg class="scuba-diver" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <title>Scuba Diver</title>
+        <circle cx="50" cy="20" r="10" fill="#f39c12"/> <rect x="45" y="30" width="10" height="30" fill="#34495e"/> <rect x="35" y="35" width="30" height="10" fill="#34495e"/> <rect x="40" y="60" width="8" height="15" fill="#2c3e50"/> <rect x="52" y="60" width="8" height="15" fill="#2c3e50"/> <ellipse cx="50" cy="78" rx="15" ry="5" fill="#e74c3c"/> <rect x="55" y="15" width="20" height="5" fill="#bdc3c7" transform="rotate(30 55 15)"/> <circle cx="30" cy="50" r="4" fill="#ecf0f1" style="animation: diverBubble 2s infinite alternate; opacity:0.8;"/>
+        <circle cx="25" cy="40" r="3" fill="#ecf0f1" style="animation: diverBubble 2s infinite alternate 0.5s; opacity:0.7;"/>
+    </svg>
+    <style> @keyframes diverBubble { 0% {opacity: 0.8; transform: translateY(0) scale(1);} 100% {opacity: 0; transform: translateY(-25px) scale(0.3);} } </style>
+
+
+    <svg class="shark shark1" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+        <title>Swimming Shark 1</title>
+        <path d="M95 25 C 80 10, 60 10, 40 20 C 20 30, 5 30, 5 25 C 5 20, 20 20, 40 30 C 60 40, 80 40, 95 25 Z" fill="#7f8c8d"/> <path d="M70 18 L75 10 L80 18 Z" fill="#95a5a6"/> <path d="M20 23 L10 20 L20 27 Z" fill="#95a5a6"/> <circle cx="85" cy="23" r="2" fill="white"/> <circle cx="85.5" cy="23" r="1" fill="black"/> </svg>
+    <svg class="shark shark2" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+        <title>Swimming Shark 2</title>
+           <path d="M95 25 C 80 10, 60 10, 40 20 C 20 30, 5 30, 5 25 C 5 20, 20 20, 40 30 C 60 40, 80 40, 95 25 Z" fill="#909FA8"/> <path d="M70 18 L75 10 L80 18 Z" fill="#a2b1b8"/> <path d="M20 23 L10 20 L20 27 Z" fill="#a2b1b8"/> <circle cx="85" cy="23" r="2" fill="white"/> <circle cx="85.5" cy="23" r="1" fill="black"/> </svg>
+
+    <svg class="treasure-chest" viewBox="0 0 60 50" xmlns="http://www.w3.org/2000/svg">
+        <title>Treasure Chest</title>
+        <rect x="5" y="20" width="50" height="25" fill="#8B4513"/> <path d="M5 20 Q5 10 30 10 T55 20 Z" fill="#A0522D"/> <rect x="2" y="18" width="56" height="5" fill="#FFD700"/> <rect x="2" y="42" width="56" height="5" fill="#FFD700"/> <rect x="25" y="28" width="10" height="8" fill="#DAA520"/> <circle cx="15" cy="25" r="3" fill="#FFD700" style="animation: coinGlint 2s infinite alternate;" /> <circle cx="20" cy="22" r="2" fill="#C0C0C0" /> <circle cx="40" cy="24" r="3.5" fill="#FFD700" style="animation: coinGlint 2s infinite alternate 0.5s;"/> </svg>
+    <style> @keyframes coinGlint { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; transform: scale(1.1);}} </style>
+
+    <div class="about-button-container">
+        <button id="aboutUsButton" class="btn-fun">About Us</button>
+    </div>
+
+    <div class="container mx-auto p-4 w-full relative z-10">
+        <div id="loginPage" class="content-area">
+            <div class="text-5xl mb-4">🐠</div>
+            <h1 class="text-3xl font-bold mb-2">Deep Sea Login!</h1>
+            <p class="mb-6">Find your underwater buddies!</p>
+
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="username" class="block mb-1 text-sm font-medium">Diver Name:</label>
+                    <input type="text" id="username" class="form-input w-full text-sm" placeholder="e.g., CaptainCoral" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block mb-1 text-sm font-medium">Secret Codeword:</label>
+                    <input type="password" id="password" class="form-input w-full text-sm" placeholder="••••••••" required>
+                </div>
+                <div id="loginError" class="text-yellow-300 text-sm mb-4" style="display: none;"></div>
+                <button type="submit" class="btn-fun w-full font-semibold py-3">
+                    Dive In!
+                </button>
+            </form>
+            <button id="showSignUpButton" class="btn-secondary-fun w-full font-semibold py-3 mt-4">
+                Join the Crew! (Sign Up)
+            </button>
+        </div>
+
+        <div id="signUpPage" class="content-area" style="display: none;">
+            <div class="text-5xl mb-4">🐡</div>
+            <h1 class="text-3xl font-bold mb-2">Join SharkNet!</h1>
+            <p class="mb-6">Create your diver profile to connect with buddies.</p>
+
+            <form id="signUpForm">
+                <div class="mb-4">
+                    <label for="newUsername" class="block mb-1 text-sm font-medium">New Diver Name:</label>
+                    <input type="text" id="newUsername" class="form-input w-full text-sm" placeholder="e.g., AquaAdventurer" required>
+                </div>
+                <div class="mb-6">
+                    <label for="newPassword" class="block mb-1 text-sm font-medium">New Secret Codeword:</label>
+                    <input type="password" id="newPassword" class="form-input w-full text-sm" placeholder="••••••••" required>
+                </div>
+                 <div class="mb-6">
+                    <label for="confirmPassword" class="block mb-1 text-sm font-medium">Confirm Codeword:</label>
+                    <input type="password" id="confirmPassword" class="form-input w-full text-sm" placeholder="••••••••" required>
+                </div>
+                <div id="signUpError" class="text-yellow-300 text-sm mb-4" style="display: none;"></div>
+                <button type="submit" class="btn-fun w-full font-semibold py-3">
+                    Register Diver!
+                </button>
+            </form>
+            <button id="backToLoginFromSignUp" class="btn-fun btn-go-back w-full font-semibold py-3 mt-4">
+                Back to Login
+            </button>
+        </div>
+
+        <div id="searchPage" class="content-area" style="display: none;">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl sm:text-3xl font-bold">Buddy Finder</h1>
+                <button id="logoutButton" class="btn-fun btn-secondary-fun text-xs font-semibold px-3 py-2">
+                    Surface!
+                </button>
+            </div>
+            <p class="mb-4 text-sm sm:text-base">Who are you looking for in the big blue?</p>
+
+            <form id="searchForm" class="mb-4">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="searchInput" class="form-input w-full text-sm flex-grow mb-2 sm:mb-0" placeholder="Name, Number, Email...">
+                    <button type="submit" class="btn-fun font-semibold px-4 py-3 sm:py-2 text-xl">
+                        🌊
+                    </button>
+                </div>
+            </form>
+
+            <button id="addContactButton" class="btn-fun btn-secondary-fun w-full font-semibold py-3 mb-4">
+                Add New Buddy
+            </button>
+
+            <div id="searchResultsContainer" class="mt-5">
+                <h2 class="text-lg sm:text-xl font-semibold mb-2">Search Discoveries:</h2>
+                <div id="actualResults" class="search-results-display">
+                    </div>
+            </div>
+        </div>
+
+        <div id="addContactPage" class="content-area" style="display: none;">
+            <div class="text-5xl mb-4">⭐</div>
+            <h1 class="text-3xl font-bold mb-2">Add New Buddy!</h1>
+            <p class="mb-6">Log a new contact in your deep-sea network.</p>
+
+            <form id="addContactForm">
+                <div class="mb-4">
+                    <label for="addContactName" class="block mb-1 text-sm font-medium">Buddy's Name:</label>
+                    <input type="text" id="addContactName" class="form-input w-full text-sm" placeholder="e.g., Dolphin Dave" required>
+                </div>
+                <div class="mb-4">
+                    <label for="addContactEmail" class="block mb-1 text-sm font-medium">Buddy's Email:</label>
+                    <input type="email" id="addContactEmail" class="form-input w-full text-sm" placeholder="e.g., dave@aquamail.com">
+                </div>
+                <div class="mb-6">
+                    <label for="addContactPhone" class="block mb-1 text-sm font-medium">Buddy's Phone:</label>
+                    <input type="text" id="addContactPhone" class="form-input w-full text-sm" placeholder="e.g., (555) DOLPHN">
+                </div>
+                 <div class="mb-6">
+                    <label for="addContactNote" class="block mb-1 text-sm font-medium">Buddy's Note:</label>
+                    <textarea id="addContactNote" class="form-input w-full text-sm" placeholder="e.g., Loves seaweed snacks" rows="3"></textarea>
+                </div>
+                <div id="addContactError" class="text-yellow-300 text-sm mb-4" style="display: none;"></div>
+                <button type="submit" class="btn-fun w-full font-semibold py-3">
+                    Add Buddy to Reef!
+                </button>
+            </form>
+            <button id="backToSearchFromAdd" class="btn-fun btn-go-back w-full font-semibold py-3 mt-4">
+                Back to Buddy Finder
+            </button>
+        </div>
+
+        <div id="editContactModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <button id="closeEditModal" class="modal-close-button">&times;</button>
+                <h2 class="text-3xl font-bold mb-2">Edit Buddy Details</h2>
+                <p class="mb-6">Update your buddy's information.</p>
+                <form id="editContactForm">
+                    <input type="hidden" id="editContactId">
+                    <div class="mb-4">
+                        <label for="editContactName" class="block mb-1 text-sm font-medium">Buddy's Name:</label>
+                        <input type="text" id="editContactName" class="form-input w-full text-sm" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editContactEmail" class="block mb-1 text-sm font-medium">Buddy's Email:</label>
+                        <input type="email" id="editContactEmail" class="form-input w-full text-sm">
+                    </div>
+                    <div class="mb-6">
+                        <label for="editContactPhone" class="block mb-1 text-sm font-medium">Buddy's Phone:</label>
+                        <input type="text" id="editContactPhone" class="form-input w-full text-sm">
+                    </div>
+                    <div class="mb-6">
+                        <label for="editContactNote" class="block mb-1 text-sm font-medium">Buddy's Note:</label>
+                        <textarea id="editContactNote" class="form-input w-full text-sm" rows="3"></textarea>
+                    </div>
+                    <div id="editContactError" class="text-yellow-300 text-sm mb-4" style="display: none;"></div>
+                    <button type="submit" class="btn-fun w-full font-semibold py-3">
+                        Update Buddy
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="aboutPage" class="content-area" style="display: none;">
+            <h1 class="text-3xl font-bold mb-4">About Our Crew!</h1>
+            <p class="mb-6">Meet some of the amazing folks who make up our SharkNet community. We're all about deep-sea connections!</p>
+            
+            <div id="aboutUsCrewDisplay" class="about-crew-section">
+                </div>
+
+            <button id="backFromAboutButton" class="btn-fun btn-go-back w-full font-semibold py-3">
+                Go Back to Login
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+    // Define the base URL for your PHP backend API
+    const BASE_URL = 'http://www.shark-paradise.com/LAMPAPI/'; 
+
+    // Get DOM elements (from your provided HTML - ensure these IDs exist in your HTML)
+    const loginPage = document.getElementById('loginPage');
+    const signUpPage = document.getElementById('signUpPage');
+    const searchPage = document.getElementById('searchPage');
+    const addContactPage = document.getElementById('addContactPage');
+    const aboutPage = document.getElementById('aboutPage'); // Assuming you have an 'aboutPage'
+
+    const loginForm = document.getElementById('loginForm');
+    const signUpForm = document.getElementById('signUpForm');
+    const addContactForm = document.getElementById('addContactForm');
+    const editContactModal = document.getElementById('editContactModal'); // Assuming edit modal
+    const editContactForm = document.getElementById('editContactForm');   // Assuming edit form inside modal
+
+    const logoutButton = document.getElementById('logoutButton');
+    const showSignUpButton = document.getElementById('showSignUpButton');
+    const addContactButton = document.getElementById('addContactButton');
+    const backToLoginFromSignUp = document.getElementById('backToLoginFromSignUp'); // Assuming this ID
+    const backToSearchFromAdd = document.getElementById('backToSearchFromAdd');     // Assuming this ID
+    const closeEditModal = document.getElementById('closeEditModal');               // Assuming this ID
+
+    const loginError = document.getElementById('loginError');
+    const signUpError = document.getElementById('signUpError');
+    const addContactError = document.getElementById('addContactError');
+    const editContactError = document.getElementById('editContactError'); // Assuming an error display for edit modal
+
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm'); // Ensure this ID exists on your search form
+    const actualResultsContainer = document.getElementById('actualResults'); // This will hold contact list
+    const aboutUsButton = document.getElementById('aboutUsButton'); // Assuming button for About Us
+    const backFromAboutButton = document.getElementById('backFromAboutButton'); // Assuming button to go back from About Us
+    const aboutUsCrewDisplay = document.getElementById('aboutUsCrewDisplay'); // Assuming container for crew info
+
+
+    // Global variables for logged-in user and contact being edited
+    let currentUserId = null; 
+    let currentUsername = null; // Store username for Basic Auth on subsequent calls
+    let currentPassword = null; // Store password (NOT recommended for long-term production, but necessary for Basic Auth)
+    let selectedContactId = null; // To store the ID of the contact being edited
+
+    // --- Helper Functions ---
+
+    // Function to show a specific page and hide others
+    function showPage(pageToShow) {
+        loginPage.style.display = 'none';
+        signUpPage.style.display = 'none';
+        searchPage.style.display = 'none';
+        addContactPage.style.display = 'none';
+        aboutPage.style.display = 'none';
+        editContactModal.style.display = 'none'; // Ensure modal is hidden when changing pages
+
+        pageToShow.style.display = 'block';
+    }
+
+    // Function to display contacts in the results container
+    async function displayContacts(contactsToDisplay, targetContainer) {
+        if (!contactsToDisplay || contactsToDisplay.length === 0) {
+            targetContainer.innerHTML = '<p class="text-center text-gray-400">No buddies found with that search. Try another name or term!</p>';
+            return;
+        }
+
+        let resultsHTML = '';
+        contactsToDisplay.forEach(contact => {
+            // Your contact.php returns: {"id": "...", "name": {"first": "...", "last": "..."}, "email": "...", "phone": "..."}
+            const contactName = contact.name ? `${contact.name.first} ${contact.name.last}` : 'N/A';
+            resultsHTML += `
+                <div class="search-result-item" data-id="${contact.id}">
+                    <div class="contact-info">
+                        <h3>${contactName}</h3>
+                        <p><strong>Email:</strong> ${contact.email || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${contact.phone || 'N/A'}</p>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="btn-action edit" data-id="${contact.id}">Edit</button>
+                        <button class="btn-action delete" data-id="${contact.id}">Delete</button>
+                    </div>
+                </div>`;
+        });
+        targetContainer.innerHTML = resultsHTML;
+
+        // Attach event listeners for new buttons
+        document.querySelectorAll('.btn-action.edit').forEach(button => {
+            button.addEventListener('click', openEditModal);
+        });
+
+        document.querySelectorAll('.btn-action.delete').forEach(button => {
+            button.addEventListener('click', deleteContact);
+        });
+    }
+
+    // New function to display crew members on the About Us page
+    function displayAboutUsCrew(crewMembers) {
+        let crewHTML = '';
+        crewMembers.forEach(member => {
+            crewHTML += `
+                <div class="about-crew-item">
+                    <div class="crew-bubble">
+                        <span class="icon">${member.icon || '🌊'}</span>
+                    </div>
+                    <div class="crew-info-box">
+                        <h3>${member.name}</h3>
+                        <p><strong>Email:</strong> ${member.email || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${member.phone || 'N/A'}</p>
+                        <p><small><em>Note:</em> ${member.note || 'No notes.'}</small></p>
+                    </div>
+                </div>
+            `;
+        });
+        aboutUsCrewDisplay.innerHTML = crewHTML;
+    }
+
+    // Helper to get Authorization header for API calls
+    function getAuthHeader() {
+        if (currentUsername && currentPassword) {
+            const credentials = btoa(`${currentUsername}:${currentPassword}`);
+            return { 'Authorization': `Basic ${credentials}` };
+        }
+        return {}; // Return empty object if no credentials
+    }
+
+    // --- Core Functionality (API Calls) ---
+
+    // Login Form Submission
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        loginError.style.display = 'none'; // Clear previous errors
+
+        try {
+            // Encode credentials for HTTP Basic Authentication
+            const credentials = btoa(`${username}:${password}`); 
+
+            // Sending GET request to account.php with Authorization header
+            const response = await fetch(`${BASE_URL}account.php`, { 
+                method: 'GET', 
+                headers: {
+                    'Authorization': `Basic ${credentials}`,
+                    'Content-Type': 'application/json' 
+                }
+            });
+
+            // Parse response as JSON
+            const result = await response.json();
+
+            // Based on your account.php's getAccount, it returns:
+            // Success: {"username": "...", "name": { "first": "...", "last": "..."}}
+            // Failure: No JSON, just http_response_code(401) or http_response_code(400) + {"error":"..."}
+            
+            // This is complex due to inconsistent PHP responses. Let's try to handle it.
+            if (response.ok) { // Check if HTTP status is 2xx (successful)
+                // If successful, your PHP returns {"username": "...", "name": { "first": "...", "last": "..."}}
+                alert('Login successful!');
+                currentUserId = result.username; // Assuming 'username' field maps to UserID for now, fix PHP for proper 'userId'
+                currentUsername = username; // Store for future authenticated requests
+                currentPassword = password; // Store (temporarily, for Basic Auth)
+                showPage(searchPage); 
+                loginForm.reset();
+                await performSearch();
+            } else {
+                // If not response.ok, PHP might return {"error":"..."}
+                loginError.textContent = 'Login failed: ' + (result.error || response.statusText);
+                loginError.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            loginError.textContent = 'An error occurred during login. Check console for details.';
+            loginError.style.display = 'block';
+        }
+    });
+
+    // Signup Form Submission
+    signUpForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newUsername = document.getElementById('newUsername').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const newFirstName = document.getElementById('newFirstName').value.trim(); 
+        const newLastName = document.getElementById('newLastName').value.trim();   
+
+        signUpError.style.display = 'none'; // Clear previous errors
+
+        if (newUsername === '' || newPassword === '' || confirmPassword === '' || newFirstName === '' || newLastName === '') {
+            signUpError.textContent = 'All fields are required for registration!';
+            signUpError.style.display = 'block';
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            signUpError.textContent = 'Codewords do not match!';
+            signUpError.style.display = 'block';
+            return;
+        }
+
+        try {
+            // Sending POST request to account.php with JSON body for signup
+            // Your postAccount() in PHP currently incorrectly uses $_SERVER['PHP_AUTH_USER'] for signup,
+            // which means this POST request will fail if PHP is not changed.
+            // This JS sends the data in the body as it should.
+            const response = await fetch(`${BASE_URL}account.php`, { 
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    username: newUsername, 
+                    password: newPassword,
+                    firstName: newFirstName, // Your PHP expects 'firstName' and 'lastName' directly in $inData
+                    lastName: newLastName
+                })
+            });
+            const result = await response.json();
+
+            // Based on your account.php's postAccount, it returns:
+            // Success: {"username": "...", "name": { "first": "...", "last": "..."}} (after http_response_code(201))
+            // Failure: {"error":"..."} (after http_response_code(409/500))
+
+            if (response.ok) { // Check if HTTP status is 2xx
+                alert('Account created successfully! Please log in.');
+                signUpForm.reset();
+                showPage(loginPage); 
+            } else {
+                signUpError.textContent = 'Signup failed: ' + (result.error || response.statusText);
+                signUpError.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error during signup:', error);
+            signUpError.textContent = 'An error occurred during signup. Check console for details.';
+            signUpError.style.display = 'block';
+        }
+    });
+
+    // Add Contact Form Submission
+    addContactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUserId) {
+            addContactError.textContent = 'Please log in to add contacts.';
+            addContactError.style.display = 'block';
+            return;
+        }
+
+        const firstName = document.getElementById('addContactFirstName').value.trim(); 
+        const lastName = document.getElementById('addContactLastName').value.trim();
+        const email = document.getElementById('addContactEmail').value.trim();
+        const phone = document.getElementById('addContactPhone').value.trim();
+
+        addContactError.style.display = 'none'; 
+
+        if (firstName === '' || lastName === '') { 
+            addContactError.textContent = 'Buddy\'s First Name and Last Name are required!';
+            addContactError.style.display = 'block';
+            return;
+        }
+
+        try {
+            // Get Basic Auth header
+            const headers = {
+                'Content-Type': 'application/json',
+                ...getAuthHeader() 
+            };
+
+            // Sending POST request to contact.php for adding contact
+            const response = await fetch(`${BASE_URL}contact.php`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ 
+                    // Your contact.php postContact expects 'name.first', 'name.last', 'email', 'phone'
+                    name: {
+                        first: firstName, 
+                        last: lastName
+                    },
+                    email: email, 
+                    phone: phone 
+                })
+            });
+            const result = await response.json(); // Assuming contact.php returns JSON even on success/failure
+
+            // Your contact.php postContact sets http_response_code(201) on success, or 500/400 + {"error":"..."}
+            if (response.ok) { 
+                alert('Contact added successfully!');
+                addContactForm.reset(); 
+                showPage(searchPage); 
+                performSearch(); 
+            } else {
+                addContactError.textContent = 'Failed to add contact: ' + (result.error || response.statusText);
+                addContactError.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error adding contact:', error);
+            addContactError.textContent = 'An error occurred while adding contact. Check console for details.';
+            addContactError.style.display = 'block';
+        }
+    });
+
+    // Function to perform search (used on page load and by search button/input)
+    async function performSearch() {
+        if (!currentUserId) {
+            actualResultsContainer.innerHTML = '<p class="text-center text-gray-400">Please log in to view contacts.</p>';
+            return;
+        }
+
+        const searchTerm = searchInput.value.trim();
+
+        try {
+            const headers = getAuthHeader(); // Only auth header needed for GET (assuming contact.php checks it)
+
+            const response = await fetch(`${BASE_URL}contact.php`, {
+                method: 'GET', // Still using GET as per requirement, but PHP's getRequestInfo will fail for GET params
+                headers: headers
+            });
+            const result = await response.json();
+
+            // Your contact.php getContacts returns: {"results": [...]} or {"error":"..."}
+            if (response.ok && result.results) { // Check response.ok and if 'results' field exists
+                await displayContacts(result.results, actualResultsContainer);
+            } else {
+                actualResultsContainer.innerHTML = `<p class="text-yellow-300 text-center">${result.error || 'No contacts found.'}</p>`;
+            }
+        } catch (error) {
+            console.error('Error during search:', error);
+            actualResultsContainer.innerHTML = `<p class="text-red-400 text-center">Failed to fetch search results. Server error.</p>`;
+        }
+    }
+
+    // Function to open the edit contact modal and pre-fill data
+    async function openEditModal(e) {
+        selectedContactId = e.target.dataset.id;
+        if (!selectedContactId || !currentUserId) return;
+
+        editContactError.style.display = 'none'; // Clear previous errors
+
+        try {
+            const headers = getAuthHeader();
+
+            // Fetching a single contact by ID using GET (contact.php/ID)
+            const response = await fetch(`${BASE_URL}contact.php/${selectedContactId}`, { 
+                method: 'GET',
+                headers: headers
+            });
+            const result = await response.json();
+
+            // Your contact.php doesn't have a specific GET for single contact by ID,
+            // but the `putContact` and `deleteContact` functions use `$contactId` from `$request[0]`.
+            // So, this is a guess that contact.php's GET will somehow respond with a single contact.
+            // If contact.php GET only returns a list, this part will need significant PHP changes.
+            // Assuming for now it returns a single contact like the search results.
+            if (response.ok && result.results && result.results.length > 0) { 
+                const contactToEdit = result.results[0]; 
+                document.getElementById('editContactId').value = contactToEdit.id; 
+                document.getElementById('editContactFirstName').value = contactToEdit.name.first;
+                document.getElementById('editContactLastName').value = contactToEdit.name.last;
+                document.getElementById('editContactPhone').value = contactToEdit.phone;
+                document.getElementById('editContactEmail').value = contactToEdit.email;
+                editContactModal.style.display = 'flex'; 
+            } else {
+                alert('Could not load contact details for editing: ' + (result.error || 'Contact not found.'));
+                editContactModal.style.display = 'none'; 
+            }
+        } catch (error) {
+            console.error('Error fetching contact for edit:', error);
+            alert('An error occurred while fetching contact details. Check console.');
+            editContactModal.style.display = 'none';
+        }
+    }
+
+    // Edit Contact Form Submission
+    editContactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!selectedContactId || !currentUserId) {
+            editContactError.textContent = 'No contact selected for editing or user not logged in.';
+            editContactError.style.display = 'block';
+            return;
+        }
+
+        const contactId = document.getElementById('editContactId').value; 
+        const firstName = document.getElementById('editContactFirstName').value.trim();
+        const lastName = document.getElementById('editContactLastName').value.trim();
+        const email = document.getElementById('editContactEmail').value.trim();
+        const phone = document.getElementById('editContactPhone').value.trim();
+
+        editContactError.style.display = 'none'; 
+
+        if (firstName === '' || lastName === '') {
+            editContactError.textContent = 'Buddy\'s First Name and Last Name are required!';
+            editContactError.style.display = 'block';
+            return;
+        }
+
+        try {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...getAuthHeader() 
+            };
+
+            // Sending PUT request to contact.php for editing contact
+            const response = await fetch(`${BASE_URL}contact.php/${contactId}`, { 
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ 
+                    name: {
+                        first: firstName, 
+                        last: lastName
+                    },
+                    email: email, 
+                    phone: phone 
+                })
+            });
+            // Your contact.php putContact sets http_response_code(201) on success, or 500/400/404 + {"error":"..."}
+            const result = await response.json(); 
+
+            if (response.ok) { 
+                alert('Contact updated successfully!');
+                editContactModal.style.display = 'none'; 
+                performSearch(); 
+            } else {
+                editContactError.textContent = 'Failed to update contact: ' + (result.error || response.statusText);
+                editContactError.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error updating contact:', error);
+            editContactError.textContent = 'An error occurred while updating contact. Check console for details.';
+            editContactError.style.display = 'block';
+        }
+    });
+
+    // Function to handle deleting a contact
+    async function deleteContact(e) {
+        if (!currentUserId) return; 
+        const contactId = e.target.dataset.id;
+        if (!confirm('Are you sure you want to remove this buddy from your reef?')) {
+            return; 
+        }
+
+        try {
+            const headers = getAuthHeader(); 
+
+            // Sending DELETE request to contact.php for deleting contact
+            const response = await fetch(`${BASE_URL}contact.php/${contactId}`, { 
+                method: 'DELETE', 
+                headers: headers
+            });
+            // Your contact.php deleteContact sets http_response_code(204) on success, or 404 + {"error":"..."}
+            
+            if (response.ok) { 
+                alert('Buddy removed successfully!');
+                performSearch(); 
+            } else {
+                 const result = await response.json(); 
+                 alert('Error deleting buddy: ' + (result.error || response.statusText));
+            }
+        } catch (error) {
+            console.error('Error deleting contact:', error);
+            alert('Failed to delete buddy. Server error.');
+        }
+    }
+
+
+    // --- Event Listeners for Navigation and Other Actions ---
+
+    // Event Listener for Sign Up Button (on Login Page)
+    showSignUpButton.addEventListener('click', function() {
+        showPage(signUpPage);
+        signUpForm.reset();
+        signUpError.style.display = 'none';
+    });
+
+    // Event Listener for Logout Button
+    logoutButton.addEventListener('click', function() {
+        alert('Logged out!');
+        currentUserId = null; 
+        currentUsername = null; 
+        currentPassword = null;
+        searchInput.value = ''; // Clear search input
+        actualResultsContainer.innerHTML = ''; // Clear search results
+        showPage(loginPage); 
+    });
+
+    // Event Listener for Add Contact Button (on Search Page)
+    addContactButton.addEventListener('click', function() {
+        showPage(addContactPage);
+        addContactForm.reset(); 
+        addContactError.style.display = 'none';
+    });
+
+    // Event Listener for Search Form Submission (Filters displayed users)
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        performSearch();
+    });
+
+    // Optional: Live search as user types
+    searchInput.addEventListener('input', performSearch);
+
+
+    // --- About Us Functionality ---
+    aboutUsButton.addEventListener('click', function() {
+        showPage(aboutPage);
+        
+        // This data is static in JS, not from PHP API
+        const aboutUsCrewData = [
+            { id: 1, name: "Bruce Sharkington", email: "bruce.s@thedeep.com", phone: "(555) SHARK-01", note: "Grumpy before coffee, but a good friend.", icon: "🦈" },
+            { id: 2, name: "Wayne Manta", email: "w.manta@oceanfloor.org", phone: "(555) RAY-FINS", note: "Glides gracefully, loves plankton smoothies.", icon: "🐢" },
+            { id: 3, name: "Coral Reefington", email: "coral.r@anemone.net", phone: "(555) 123-4567", note: "Very colorful! Knows all the best hiding spots.", icon: "🐠" },
+            { id: 4, name: "Sandy Starfish", email: "sandy.star@tidalpools.io", phone: "(555) STAR-ME", note: "A bit clingy, but always points you in the right direction.", icon: "🐳" }
+        ];
+        displayAboutUsCrew(aboutUsCrewData); 
+    });
+
+    backFromAboutButton.addEventListener('click', function() {
+        if (currentUserId) {
+            showPage(searchPage);
+            performSearch(); 
+        } else {
+            showPage(loginPage);
+        }
+    });
+
+    // Back buttons for new pages
+    backToLoginFromSignUp.addEventListener('click', () => {
+        showPage(loginPage);
+        signUpForm.reset(); 
+        signUpError.style.display = 'none'; 
+    });
+    backToSearchFromAdd.addEventListener('click', () => {
+        showPage(searchPage);
+        addContactForm.reset(); 
+        addContactError.style.display = 'none'; 
+        performSearch(); 
+    });
+    closeEditModal.addEventListener('click', () => {
+        editContactModal.style.display = 'none';
+        editContactForm.reset();
+        editContactError.style.display = 'none';
+    });
+
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target == editContactModal) {
+            editContactModal.style.display = 'none';
+            editContactForm.reset();
+            editContactError.style.display = 'none';
+        }
+    });
+
+
+    // Initial state: Show the login page when the application loads
+    showPage(loginPage); 
+
+</script>
+
+</body>
+</html>
